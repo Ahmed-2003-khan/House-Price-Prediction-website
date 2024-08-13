@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 import json
 import numpy as np
-import plotly.express as px
+
 
 # Custom CSS to style the application
 def local_css(file_name):
