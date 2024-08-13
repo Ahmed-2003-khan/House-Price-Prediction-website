@@ -4,7 +4,6 @@ import pickle
 import json
 import numpy as np
 
-
 # Custom CSS to style the application
 def local_css(file_name):
     with open(file_name) as f:
@@ -25,18 +24,15 @@ def format_price(pkr_price):
     else:
         return f"{pkr_price:.2f} PKR"
 
-
-
+# Load the models from pickle files
 with open('model_sale.pkl', 'rb') as f:
     model_sale = pickle.load(f)
 with open('model_rent.pkl', 'rb') as f:
     model_rent = pickle.load(f)
 
-
 # Load locations from JSON files
 with open('locations_sale.json', 'r') as f:
     locations_sale = json.load(f)
-
 with open('locations_rent.json', 'r') as f:
     locations_rent = json.load(f)
 
@@ -64,7 +60,12 @@ if purpose == 'For Sale':
 
     if st.button('Predict Sale Price'):
         columns = ['baths', 'bedrooms', 'Area Size'] + locations_sale + cities_sale + property_types + purposes
-        input_df = pd.DataFrame(np.zeros((1, len(columns))), columns=columns)
+        
+        # Ensuring the input DataFrame matches the model's expected feature set
+        model_columns = model_sale.feature_names_in_
+        input_df = pd.DataFrame(0, index=[0], columns=model_columns)
+        
+        # Populate the DataFrame with user inputs
         input_df.at[0, 'baths'] = baths
         input_df.at[0, 'bedrooms'] = bedrooms
         input_df.at[0, 'Area Size'] = area_size
@@ -73,10 +74,11 @@ if purpose == 'For Sale':
         input_df.at[0, property_type] = 1
         input_df.at[0, 'For Sale'] = 1
 
+        # Predict and display the sale price
         predicted_price = model_sale.predict(input_df)[0]
         predicted_price = np.exp(predicted_price)
         formatted_price = format_price(predicted_price)
-        st.write(f"The predicted price is: {formatted_price}")
+        st.write(f"The predicted sale price is: {formatted_price}")
 
 else:
     col1, col2, col3 = st.columns(3)
@@ -93,7 +95,12 @@ else:
 
     if st.button('Predict Rent Price'):
         columns = ['baths', 'bedrooms', 'Area Size'] + locations_rent + cities_rent + property_types
-        input_df = pd.DataFrame(np.zeros((1, len(columns))), columns=columns)
+        
+        # Ensuring the input DataFrame matches the model's expected feature set
+        model_columns = model_rent.feature_names_in_
+        input_df = pd.DataFrame(0, index=[0], columns=model_columns)
+        
+        # Populate the DataFrame with user inputs
         input_df.at[0, 'baths'] = baths
         input_df.at[0, 'bedrooms'] = bedrooms
         input_df.at[0, 'Area Size'] = area_size
@@ -101,7 +108,8 @@ else:
         input_df.at[0, city] = 1
         input_df.at[0, property_type] = 1
 
+        # Predict and display the rent price
         predicted_price = model_rent.predict(input_df)[0]
         predicted_price = np.exp(predicted_price)
         formatted_price = format_price(predicted_price)
-        st.write(f"The predicted price is: {formatted_price}")
+        st.write(f"The predicted rent price is: {formatted_price}")
